@@ -9,7 +9,7 @@ using TenmoServer.Models;
 
 namespace TenmoServer.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("[controller]")]
     [ApiController]
     public class TransfersController : ControllerBase
     {
@@ -22,7 +22,16 @@ namespace TenmoServer.Controllers
        [HttpPost]
        public IActionResult CreateTransfer(Transfer transfer)
         {
+            bool wasCreated = transferDAO.CreateTransfer(transfer);
 
+            if (wasCreated)
+            {
+                return Ok();
+            }
+            else
+            {
+                return BadRequest();
+            }
         }
     }
 

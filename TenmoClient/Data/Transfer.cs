@@ -1,14 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using static TenmoClient.Data.Enums;
 
-namespace TenmoClient.Views
+namespace TenmoClient.Data
 {
     public class Transfer
     {
         public int TransferId { get; set; }
 
-        public TransferType  TransferType {get; set;}
+        public TransferType TransferType { get; set; }
 
         public TransferStatus TransferStatus { get; set; }
 

@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using TenmoServer.Models;
+using System.Text;
+using TenmoClient.Data;
 
-namespace TenmoServer.DAO
+namespace TenmoClient.DAL
 {
     public interface ITransferDAO
     {
