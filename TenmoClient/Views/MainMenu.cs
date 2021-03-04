@@ -53,10 +53,22 @@ namespace TenmoClient.Views
         private MenuOptionResult SendTEBucks()
         {
             List<DisplayAccount> accounts = accountDAO.GetAllAccounts();
+            //TODO Take users account out of list
             foreach (DisplayAccount account in accounts)
             {
+
                 Console.WriteLine($"{account.AccountId} {account.Username}");
             }
+
+            decimal accountTo = GetDecimal("What account do you want to send money to?");
+            decimal moneyToSend = GetDecimal("How much money would you like to send?");
+            Account userAccount = accountDAO.GetAccountByUserId(UserService.GetUserId());
+            if(moneyToSend > userAccount.Balance)
+            {
+                Console.WriteLine("I'm sorry you don't have enough finds for the transfer");
+                return MenuOptionResult.WaitAfterMenuSelection;
+            }
+
             return MenuOptionResult.WaitAfterMenuSelection;
         }
 
