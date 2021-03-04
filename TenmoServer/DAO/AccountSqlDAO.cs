@@ -11,6 +11,7 @@ namespace TenmoServer.DAO
     {
         private string connectionString;
         private const string SQL_GET_ACCOUNT_BALANCE = "SELECT * FROM accounts WHERE user_id = @userId;";
+        private const string SQL_GET_ALL_DISPLAY_ACCOUNTS = @"SELECT u.username, a.account_id FROM accounts a JOIN users u ON u.user_id = a.user_id";
         public AccountSqlDAO(string connectionString)
         {
             this.connectionString = connectionString;
@@ -44,6 +45,38 @@ namespace TenmoServer.DAO
                 throw;
             }
         }
+
+        public List<DisplayAccount> GetAllDisplayAccounts()
+        {
+            List<DisplayAccount> accounts = new List<DisplayAccount>();
+
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(connectionString))
+                {
+                    conn.Open();
+
+                    SqlCommand cmd = new SqlCommand(SQL_GET_ALL_DISPLAY_ACCOUNTS, conn);
+                    SqlDataReader rdr = cmd.ExecuteReader();
+
+                    while (rdr.Read())
+                    {
+                        DisplayAccount account = new DisplayAccount();
+                        account.Username = Convert.ToString(rdr["username"]);
+                        account.AccountId = Convert.ToInt32(rdr["account_id"]);
+                        accounts.Add(account);
+                    }
+
+                    return accounts;
+                }
+            }
+            catch (SqlException ex)
+            {
+
+                throw;
+            }
+        }
+
 
         private Account RowToObject(SqlDataReader rdr)
         {

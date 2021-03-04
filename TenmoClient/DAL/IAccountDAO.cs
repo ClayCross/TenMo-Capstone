@@ -8,5 +8,6 @@ namespace TenmoClient.DAL
     public interface IAccountDAO
     {
         Account GetAccountByUserId(int userId);
+        List<DisplayAccount> GetAllAccounts();
     }
 }

@@ -34,5 +34,15 @@ namespace TenmoServer.Controllers
             }
         }
 
+        [HttpGet]
+        public ActionResult<List<DisplayAccount>> GetAllAccounts()
+        {
+
+            List<DisplayAccount> accounts = accountDAO.GetAllDisplayAccounts();
+
+            return Ok(accounts);
+
+        }
+
     }
 }

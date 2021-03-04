@@ -25,6 +25,15 @@ namespace TenmoClient.DAL
 
         }
 
+        public List<DisplayAccount> GetAllAccounts()
+        {
+            RestRequest request = new RestRequest("/users");
+            IRestResponse<List<DisplayAccount>> response = client.Get<List<DisplayAccount>>(request);
+            CheckResponse(response);
+            return response.Data;
+        }
+
+
         private static void CheckResponse(IRestResponse response)
         {
             if (response.ResponseStatus != ResponseStatus.Completed)

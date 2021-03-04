@@ -33,7 +33,7 @@ namespace TenmoClient.Views
         {
             Account account = accountDAO.GetAccountByUserId(UserService.GetUserId());
 
-            Console.WriteLine(account.Balance);
+            Console.WriteLine($"Your current balance is: {account.Balance: c}");
 
             return MenuOptionResult.WaitAfterMenuSelection;
         }
@@ -52,7 +52,11 @@ namespace TenmoClient.Views
 
         private MenuOptionResult SendTEBucks()
         {
-            Console.WriteLine("Not yet implemented!");
+            List<DisplayAccount> accounts = accountDAO.GetAllAccounts();
+            foreach (DisplayAccount account in accounts)
+            {
+                Console.WriteLine($"{account.AccountId} {account.Username}");
+            }
             return MenuOptionResult.WaitAfterMenuSelection;
         }
 
