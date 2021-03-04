@@ -10,10 +10,12 @@ namespace TenmoClient.Views
     public class LoginRegisterMenu : ConsoleMenu
     {
         private readonly AuthService authService;
+        private readonly string apiBaseUrl;
 
-        public LoginRegisterMenu(AuthService authService)
+        public LoginRegisterMenu(AuthService authService, string apiBaseUrl)
         {
             this.authService = authService;
+            this.apiBaseUrl = apiBaseUrl;
 
             AddOption("Login", Login)
                 .AddOption("Register", Register)
@@ -43,7 +45,7 @@ namespace TenmoClient.Views
             UserService.SetLogin(user);
 
             // User is logged in, show the main menu now.
-            return new MainMenu().Show();
+            return new MainMenu(apiBaseUrl).Show();
         }
 
         private MenuOptionResult Register()
