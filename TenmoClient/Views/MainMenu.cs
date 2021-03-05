@@ -73,7 +73,7 @@ namespace TenmoClient.Views
 
                 if (transferId == 0)
                 {
-                    return MenuOptionResult.CloseMenuAfterSelection;
+                    return MenuOptionResult.DoNotWaitAfterMenuSelection;
                 }
                 
                 selectedTransfer = transfers.Find(t => t.TransferId == transferId);
@@ -130,7 +130,7 @@ namespace TenmoClient.Views
 
                 if (accountTo == 0)
                 {
-                    return MenuOptionResult.CloseMenuAfterSelection;
+                    return MenuOptionResult.DoNotWaitAfterMenuSelection;
                 }
                 DisplayAccount verifiedAccount = accounts.Find(a => a.AccountId == accountTo);
                 if (verifiedAccount != null)
