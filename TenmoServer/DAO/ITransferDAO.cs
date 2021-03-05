@@ -10,5 +10,6 @@ namespace TenmoServer.DAO
     {
         bool CreateTransfer(Transfer transfer);
         List<Transfer> GetTransfersByUser(int id);
+        bool CreatePendingTransfer(Transfer transfer);
     }
 }

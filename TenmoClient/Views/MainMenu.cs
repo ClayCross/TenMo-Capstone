@@ -177,9 +177,64 @@ namespace TenmoClient.Views
 
         private MenuOptionResult RequestTEBucks()
         {
-            Console.WriteLine("Not yet implemented!");
+            List<DisplayAccount> accounts = accountDAO.GetAllAccounts();
+            accounts = accounts.Where(a => a.AccountId != UserService.GetUserId()).ToList();
+
+            foreach (DisplayAccount account in accounts)
+            {
+
+                Console.WriteLine($"{account.AccountId} {account.Username}");
+            }
+
+            bool validId = false;
+            int fromAccountId = -1;
+
+            while (!validId)
+            {
+                fromAccountId = GetInteger("Enter ID of user you are requesting from (0 to cancel): ");
+
+                if (fromAccountId == 0)
+                {
+                    return MenuOptionResult.DoNotWaitAfterMenuSelection;
+                }
+                DisplayAccount verifiedAccount = accounts.Find(a => a.AccountId == fromAccountId);
+                if (verifiedAccount != null)
+                {
+                    break;
+                }
+                else
+                {
+                    Console.WriteLine("Please provide a valid ID.");
+                }
+
+            }
+            decimal requestAmount = GetDecimal("Enter Amount");
+            DisplayAccount accountFrom = accounts.Find(a => a.AccountId == fromAccountId);
+
+            Transfer transfer = new Transfer();
+            transfer.TransferStatus = TransferStatus.Pending;
+            transfer.TransferType = TransferType.Send;
+            transfer.AccountFrom = accountFrom.AccountId;
+            transfer.AccountTo = UserService.GetUserId();
+            transfer.Amount = requestAmount;
+            transfer.UserNameTo = UserService.GetUserName();
+            transfer.UserNameFrom = accountFrom.Username;
+
+            bool wasRequested = transferDAO.CreateTransfer(transfer);
+
+            if (wasRequested)
+            {
+                Console.WriteLine("Successfully requested transfer!");
+            }
+            else
+            {
+                Console.WriteLine("Transfer request failed.");
+            }
+
             return MenuOptionResult.WaitAfterMenuSelection;
         }
+
+
 
         private MenuOptionResult Logout()
         {

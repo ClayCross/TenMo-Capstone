@@ -18,6 +18,9 @@ namespace TenmoServer.DAO
     INSERT INTO transfers (transfer_type_id, transfer_status_id, account_from, account_to, amount) VALUES
 	    (@transferTypeId, @transferStatusId, @accountFrom, @accountTo, @amount);
     COMMIT TRANSACTION";
+        private const string SQL_CREATE_PENDING_TRANSFER = @"INSERT INTO transfers (transfer_type_id, transfer_status_id, account_from, account_to, amount) VALUES
+	    (@transferTypeId, @transferStatusId, @accountFrom, @accountTo, @amount);";
+
         private const string SQL_GET_TRANSFERS_BY_USER = @"SELECT t.*, uFrom.username AS FromUsername, uTo.username AS ToUsername
 	                                                         FROM transfers t
 	                                                         JOIN accounts aFrom ON t.account_from = aFrom.account_id
@@ -107,7 +110,50 @@ namespace TenmoServer.DAO
             }
         }
 
-        private Transfer RowToObject(SqlDataReader rdr)
+        public bool CreatePendingTransfer(Transfer transfer)
+        {
+            try
+            {
+                using(SqlConnection conn = new SqlConnection(connectionString))
+                {
+                    conn.Open();
+
+                    SqlCommand cmd = new SqlCommand(SQL_CREATE_PENDING_TRANSFER, conn);
+                    cmd.Parameters.AddWithValue("@transferTypeId", (int)transfer.TransferType);
+                    cmd.Parameters.AddWithValue("@transferStatusId", (int)transfer.TransferStatus);
+                    cmd.Parameters.AddWithValue("@accountFrom",transfer.AccountFrom);
+                    cmd.Parameters.AddWithValue("@accountTo", transfer.AccountTo);
+                    cmd.Parameters.AddWithValue("@amount", transfer.Amount);
+
+                    int rowsAffected = cmd.ExecuteNonQuery();
+
+                    if(rowsAffected == 1)
+                    {
+                        return true;
+                    }
+                    return false;
+
+
+
+
+
+                   //INSERT INTO transfers(transfer_type_id, transfer_status_id, account_from, account_to, amount) VALUES
+       //(@transferTypeId, @transferStatusId, @accountFrom, @accountTo, @amount);
+                }
+                
+                        
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+        }
+    
+
+
+
+    private Transfer RowToObject(SqlDataReader rdr)
         {
             Transfer transfer = new Transfer();
 

@@ -35,6 +35,21 @@ namespace TenmoServer.Controllers
                 return BadRequest();
             }
         }
+        [HttpPost("/request")]
+
+        public IActionResult RequestTransfer(Transfer transfer)
+        {
+            bool wasCreated = transferDAO.CreatePendingTransfer(transfer);
+
+            if (wasCreated)
+            {
+                return Ok();
+            }
+            else
+            {
+                return BadRequest();
+            }
+        }
 
 
     }
