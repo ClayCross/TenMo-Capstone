@@ -4,6 +4,7 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 using TenmoServer.Models;
+using static TenmoServer.Models.Enums;
 
 namespace TenmoServer.DAO
 {
@@ -17,11 +18,50 @@ namespace TenmoServer.DAO
     INSERT INTO transfers (transfer_type_id, transfer_status_id, account_from, account_to, amount) VALUES
 	    (@transferTypeId, @transferStatusId, @accountFrom, @accountTo, @amount);
     COMMIT TRANSACTION";
+        private const string SQL_GET_TRANSFERS_BY_USER = @"SELECT t.*, uFrom.username AS FromUsername, uTo.username AS ToUsername
+	                                                         FROM transfers t
+	                                                         JOIN accounts aFrom ON t.account_from = aFrom.account_id
+	                                                         JOIN accounts aTo ON t.account_to = aTo.account_id
+	                                                         JOIN users uFrom ON aFrom.user_id = uFrom.user_id
+	                                                         JOIN users uTo ON aTo.user_id = uTo.user_id
+                                                             WHERE aFrom.user_id = @userId OR aTo.user_id = @userId;";
 
         public TransferSqlDAO(string connectionString)
         {
             this.connectionString = connectionString;
         }
+
+        public List<Transfer> GetTransfersByUser(int id)
+        {
+            List<Transfer> transfers = new List<Transfer>();
+
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(connectionString))
+                {
+                    conn.Open();
+
+                    SqlCommand cmd = new SqlCommand(SQL_GET_TRANSFERS_BY_USER, conn);
+                    cmd.Parameters.AddWithValue("@userId", id);
+                    SqlDataReader rdr = cmd.ExecuteReader();
+
+                    while (rdr.Read())
+                    {
+                        Transfer transfer = RowToObject(rdr);
+                        transfers.Add(transfer);
+                    }
+
+                    return transfers;
+                }
+            }
+            catch (SqlException ex)
+            {
+
+                throw;
+            }
+
+        }
+
 
         public bool CreateTransfer(Transfer transfer)
         {
@@ -66,6 +106,23 @@ namespace TenmoServer.DAO
                 throw;
             }
         }
+
+        private Transfer RowToObject(SqlDataReader rdr)
+        {
+            Transfer transfer = new Transfer();
+
+            transfer.TransferId = Convert.ToInt32(rdr["transfer_id"]);
+            transfer.TransferType = (TransferType)Convert.ToInt32(rdr["transfer_type_id"]);
+            transfer.TransferStatus = (TransferStatus)Convert.ToInt32(rdr["transfer_status_id"]);
+            transfer.AccountFrom = Convert.ToInt32(rdr["account_from"]);
+            transfer.UserNameFrom = Convert.ToString(rdr["FromUsername"]);
+            transfer.AccountTo = Convert.ToInt32(rdr["account_to"]);
+            transfer.UserNameTo = Convert.ToString(rdr["ToUsername"]);
+            transfer.Amount = Convert.ToDecimal(rdr["amount"]);
+
+            return transfer;
+        }
+
 
     }
 

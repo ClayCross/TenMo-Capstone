@@ -8,5 +8,7 @@ namespace TenmoClient.DAL
     public interface ITransferDAO
     {
         bool CreateTransfer(Transfer transfer);
+        List<Transfer> GetTransfersByUser(int id);
+
     }
 }

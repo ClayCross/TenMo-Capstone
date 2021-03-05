@@ -14,9 +14,11 @@ namespace TenmoServer.Controllers
     public class UsersController : ControllerBase
     {
         private IAccountDAO accountDAO;
-        public UsersController(IAccountDAO accountDAO)
+        private ITransferDAO transferDAO;
+        public UsersController(IAccountDAO accountDAO, ITransferDAO transferDAO)
         {
             this.accountDAO = accountDAO;
+            this.transferDAO = transferDAO;
         }
 
         [HttpGet("{id}")]
@@ -32,6 +34,14 @@ namespace TenmoServer.Controllers
             {
                 return Ok(account);
             }
+        }
+
+        [HttpGet("{id}/transfers")]
+        public ActionResult<List<Transfer>> GetTransfersByUser(int id)
+        {
+            List<Transfer> transfers = transferDAO.GetTransfersByUser(id);
+
+            return Ok(transfers);
         }
 
         [HttpGet]

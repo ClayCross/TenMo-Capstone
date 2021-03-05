@@ -44,28 +44,107 @@ namespace TenmoClient.Views
 
         private MenuOptionResult ViewTransfers()
         {
-            Console.WriteLine("Not yet implemented!");
+            List<Transfer> transfers = transferDAO.GetTransfersByUser(UserService.GetUserId());
+
+            Console.WriteLine("Transfers");
+            Console.WriteLine($"{"ID", -10}{"From/To", -19}{"Amount", -10}\n");
+
+            foreach (Transfer transfer in transfers)
+            {
+                if (transfer.AccountTo == UserService.GetUserId())
+                {
+                    Console.WriteLine($"{transfer.TransferId,-10}From: {transfer.UserNameFrom,-13}{transfer.Amount, -10:c}");
+                }
+                else
+                {
+                    Console.WriteLine($"{transfer.TransferId,-10}To: {transfer.UserNameTo,-15}{transfer.Amount, -10:c}");
+                }
+            }
+
+            Console.WriteLine();
+
+            bool validId = false;
+           Transfer selectedTransfer = null;
+
+            while (!validId)
+            {
+
+                int transferId = GetInteger("Please enter the ID to view details (0 to cancel): ");
+
+                if (transferId == 0)
+                {
+                    return MenuOptionResult.CloseMenuAfterSelection;
+                }
+                
+                selectedTransfer = transfers.Find(t => t.TransferId == transferId);
+                
+                if (selectedTransfer != null)
+                {
+                    break;
+                }
+                else
+                {
+                    Console.WriteLine();
+                    Console.WriteLine("I'm sorry that was not a valid ID.");
+                }
+            }
+
+            Console.Clear();
+            Console.WriteLine("-----------------------------------------");
+            Console.WriteLine("Transfer Details");
+            Console.WriteLine("-----------------------------------------\n");
+            Console.WriteLine($"Id: {selectedTransfer.TransferId}");
+            Console.WriteLine($"From: {selectedTransfer.UserNameFrom}");
+            Console.WriteLine($"To: {selectedTransfer.UserNameTo}");
+            Console.WriteLine($"Type: {selectedTransfer.TransferType}");
+            Console.WriteLine($"Status: {selectedTransfer.TransferStatus}");
+            Console.WriteLine($"Amount: {selectedTransfer.Amount:c}");
+
             return MenuOptionResult.WaitAfterMenuSelection;
         }
 
         private MenuOptionResult ViewRequests()
         {
-            Console.WriteLine("Not yet implemented!");
+            Console.WriteLine("Not implemented");
+
             return MenuOptionResult.WaitAfterMenuSelection;
         }
 
         private MenuOptionResult SendTEBucks()
         {
             List<DisplayAccount> accounts = accountDAO.GetAllAccounts();
-            //TODO Take users account out of list
+            accounts = accounts.Where(a => a.AccountId != UserService.GetUserId()).ToList();
+
             foreach (DisplayAccount account in accounts)
             {
 
                 Console.WriteLine($"{account.AccountId} {account.Username}");
             }
 
-            int accountTo = GetInteger("What account do you want to send money to?");
-            decimal moneyToSend = GetDecimal("How much money would you like to send?");
+            bool validId = false;
+            int accountTo = -1;
+
+            while (!validId)
+            {
+                accountTo = GetInteger("Enter ID of user you are sending to (0 to cancel): ");
+
+                if (accountTo == 0)
+                {
+                    return MenuOptionResult.CloseMenuAfterSelection;
+                }
+                DisplayAccount verifiedAccount = accounts.Find(a => a.AccountId == accountTo);
+                if (verifiedAccount != null)
+                {
+                    break;
+                }
+                else
+                {
+                    Console.WriteLine("Please provide a valid ID.");
+                }
+
+            }
+           
+            decimal moneyToSend = GetDecimal("Enter amount: ");
             Account userAccount = accountDAO.GetAccountByUserId(UserService.GetUserId());
             if(moneyToSend > userAccount.Balance)
             {
