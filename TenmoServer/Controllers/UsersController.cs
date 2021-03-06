@@ -39,9 +39,18 @@ namespace TenmoServer.Controllers
         }
 
         [HttpGet("{id}/transfers")]
-        public ActionResult<List<Transfer>> GetTransfersByUser(int id)
+        public ActionResult<List<Transfer>> GetTransfersByUser(int id, bool pending = false)
         {
-            List<Transfer> transfers = transferDAO.GetTransfersByUser(id);
+            List<Transfer> transfers;
+
+            if (pending)
+            {
+                transfers = transferDAO.GetPendingByUser(id);
+            }
+            else
+            {
+                transfers = transferDAO.GetTransfersByUser(id);
+            }
 
             return Ok(transfers);
         }

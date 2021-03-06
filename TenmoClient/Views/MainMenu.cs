@@ -45,9 +45,11 @@ namespace TenmoClient.Views
         private MenuOptionResult ViewTransfers()
         {
             List<Transfer> transfers = transferDAO.GetTransfersByUser(UserService.GetUserId());
-
+            Console.WriteLine("-----------------------------------------");
             Console.WriteLine("Transfers");
             Console.WriteLine($"{"ID", -10}{"From/To", -19}{"Amount", -10}\n");
+            Console.WriteLine("-----------------------------------------");
+
 
             foreach (Transfer transfer in transfers)
             {
@@ -105,7 +107,77 @@ namespace TenmoClient.Views
 
         private MenuOptionResult ViewRequests()
         {
-            Console.WriteLine("Not implemented");
+            List<Transfer> transfers = transferDAO.GetPendingByUser(UserService.GetUserId());
+
+            Console.WriteLine("-----------------------------------------");
+            Console.WriteLine("Pending Transfers");
+            Console.WriteLine($"{"ID",-10}{"To",-19}{"Amount",-10}\n");
+            Console.WriteLine("-----------------------------------------");
+
+
+            foreach (Transfer transfer in transfers)
+            {
+                Console.WriteLine($"{transfer.TransferId,-10}{transfer.UserNameTo,-19}{transfer.Amount,-10:c}");
+            }
+
+            int transferId = GetInteger("\nPlease enter transfer ID to approve/reject (0 to cancel): ");
+            if (transferId == 0)
+            {
+                return MenuOptionResult.DoNotWaitAfterMenuSelection;
+            }
+
+            Transfer selectedTransfer = transfers.Find(t => t.TransferId == transferId);
+            Console.Clear();
+            Console.WriteLine("1: Approve");
+            Console.WriteLine("2: Reject");
+            Console.WriteLine("0: Don't approve or reject");
+
+            int action = GetInteger("Please choose an option: ");
+
+            if (action == 1)
+            {
+                Account userAccount = accountDAO.GetAccountByUserId(UserService.GetUserId());
+                if (selectedTransfer.Amount > userAccount.Balance)
+                {
+                    Console.WriteLine("You do not have enough funds to complete the transfer.");
+                    return MenuOptionResult.WaitAfterMenuSelection;
+                }
+
+                selectedTransfer.TransferStatus = TransferStatus.Approved;
+
+                bool wasTransferred = transferDAO.UpdateTransfer(selectedTransfer);
+
+                if (wasTransferred)
+                {
+                    Console.WriteLine("Successful transfer!");
+                }
+                else
+                {
+                    Console.WriteLine("Transfer failed.");
+                }
+
+            }
+            else if (action == 2)
+            {
+                selectedTransfer.TransferStatus = TransferStatus.Rejected;
+
+                bool wasTransferred = transferDAO.UpdateTransfer(selectedTransfer);
+
+                if (wasTransferred)
+                {
+                    Console.WriteLine("Transfer rejection complete!");
+                }
+                else
+                {
+                    Console.WriteLine("Transfer rejection failed.");
+                }
+
+            }
+            else
+            {
+                return MenuOptionResult.DoNotWaitAfterMenuSelection;
+            }
+
 
             return MenuOptionResult.WaitAfterMenuSelection;
         }
@@ -115,24 +187,29 @@ namespace TenmoClient.Views
             List<DisplayAccount> accounts = accountDAO.GetAllAccounts();
             accounts = accounts.Where(a => a.AccountId != UserService.GetUserId()).ToList();
 
+            Console.WriteLine("-----------------------------------------");
+            Console.WriteLine($"Users");
+            Console.WriteLine($"{"ID", -11}{"Name", -10}");
+            Console.WriteLine("-----------------------------------------");
+
             foreach (DisplayAccount account in accounts)
             {
 
-                Console.WriteLine($"{account.AccountId} {account.Username}");
+                Console.WriteLine($"{account.AccountId, -10} {account.Username, -10}");
             }
 
             bool validId = false;
-            int accountTo = -1;
+            int accountToId = -1;
 
             while (!validId)
             {
-                accountTo = GetInteger("Enter ID of user you are sending to (0 to cancel): ");
+                accountToId = GetInteger("Enter ID of user you are sending to (0 to cancel): ");
 
-                if (accountTo == 0)
+                if (accountToId == 0)
                 {
                     return MenuOptionResult.DoNotWaitAfterMenuSelection;
                 }
-                DisplayAccount verifiedAccount = accounts.Find(a => a.AccountId == accountTo);
+                DisplayAccount verifiedAccount = accounts.Find(a => a.AccountId == accountToId);
                 if (verifiedAccount != null)
                 {
                     break;
@@ -144,20 +221,21 @@ namespace TenmoClient.Views
 
             }
            
-            decimal moneyToSend = GetDecimal("Enter amount: ");
+            decimal transferAmount = GetDecimal("Enter amount: ");
             Account userAccount = accountDAO.GetAccountByUserId(UserService.GetUserId());
-            if(moneyToSend > userAccount.Balance)
+
+            if(transferAmount > userAccount.Balance)
             {
-                Console.WriteLine("I'm sorry you don't have enough finds for the transfer");
+                Console.WriteLine("I'm sorry you don't have enough funds for the transfer");
                 return MenuOptionResult.WaitAfterMenuSelection;
             }
+            DisplayAccount toAccount = accounts.Find(a => a.AccountId == accountToId);
             Transfer transfer = new Transfer();
             transfer.TransferStatus = TransferStatus.Approved;
             transfer.TransferType = TransferType.Send;
             transfer.AccountFrom = userAccount.AccountId;
-            transfer.AccountTo = accountTo;
-            transfer.Amount = moneyToSend;
-            DisplayAccount toAccount = accounts.Find(a => a.AccountId == accountTo);
+            transfer.AccountTo = accountToId;
+            transfer.Amount = transferAmount;
             transfer.UserNameTo = toAccount.Username;
             transfer.UserNameFrom = UserService.GetUserName();
 
@@ -180,10 +258,15 @@ namespace TenmoClient.Views
             List<DisplayAccount> accounts = accountDAO.GetAllAccounts();
             accounts = accounts.Where(a => a.AccountId != UserService.GetUserId()).ToList();
 
+            Console.WriteLine("-----------------------------------------");
+            Console.WriteLine($"Users");
+            Console.WriteLine($"{"ID",-11}{"Name",-10}");
+            Console.WriteLine("-----------------------------------------");
+
             foreach (DisplayAccount account in accounts)
             {
 
-                Console.WriteLine($"{account.AccountId} {account.Username}");
+                Console.WriteLine($"{account.AccountId, -10} {account.Username, -10}");
             }
 
             bool validId = false;
@@ -213,14 +296,14 @@ namespace TenmoClient.Views
 
             Transfer transfer = new Transfer();
             transfer.TransferStatus = TransferStatus.Pending;
-            transfer.TransferType = TransferType.Send;
+            transfer.TransferType = TransferType.Request;
             transfer.AccountFrom = accountFrom.AccountId;
             transfer.AccountTo = UserService.GetUserId();
             transfer.Amount = requestAmount;
             transfer.UserNameTo = UserService.GetUserName();
             transfer.UserNameFrom = accountFrom.Username;
 
-            bool wasRequested = transferDAO.CreateTransfer(transfer);
+            bool wasRequested = transferDAO.CreateTransferRequest(transfer);
 
             if (wasRequested)
             {

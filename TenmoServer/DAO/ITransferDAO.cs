@@ -11,5 +11,8 @@ namespace TenmoServer.DAO
         bool CreateTransfer(Transfer transfer);
         List<Transfer> GetTransfersByUser(int id);
         bool CreatePendingTransfer(Transfer transfer);
+        List<Transfer> GetPendingByUser(int id);
+        bool AuthorizeTransfer(Transfer transfer);
+        bool RejectTransfer(Transfer transfer);
     }
 }

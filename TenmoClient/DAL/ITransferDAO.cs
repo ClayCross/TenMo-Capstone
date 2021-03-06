@@ -9,6 +9,8 @@ namespace TenmoClient.DAL
     {
         bool CreateTransfer(Transfer transfer);
         List<Transfer> GetTransfersByUser(int id);
-
+        List<Transfer> GetPendingByUser(int id);
+        bool UpdateTransfer(Transfer transfer);
+        bool CreateTransferRequest(Transfer transfer);
     }
 }

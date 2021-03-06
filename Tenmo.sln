@@ -3,9 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30128.74
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TenmoServer", "TenmoServer\TenmoServer.csproj", "{C6335DAA-53B6-47A9-9E96-29600F83FE1A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TenmoServer", "TenmoServer\TenmoServer.csproj", "{C6335DAA-53B6-47A9-9E96-29600F83FE1A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TenmoClient", "TenmoClient\TenmoClient.csproj", "{C70367C0-8E0C-4766-A35A-64BD3D08E940}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TenmoClient", "TenmoClient\TenmoClient.csproj", "{C70367C0-8E0C-4766-A35A-64BD3D08E940}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TenmoServerIntegrationTests", "TenmoServerIntegrationTests\TenmoServerIntegrationTests.csproj", "{B44D676A-314A-43C4-A0BA-3384F26B3807}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{C70367C0-8E0C-4766-A35A-64BD3D08E940}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C70367C0-8E0C-4766-A35A-64BD3D08E940}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C70367C0-8E0C-4766-A35A-64BD3D08E940}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B44D676A-314A-43C4-A0BA-3384F26B3807}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B44D676A-314A-43C4-A0BA-3384F26B3807}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B44D676A-314A-43C4-A0BA-3384F26B3807}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B44D676A-314A-43C4-A0BA-3384F26B3807}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

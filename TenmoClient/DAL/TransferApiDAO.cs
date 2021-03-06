@@ -35,9 +35,54 @@ namespace TenmoClient.DAL
 
         }
 
+        public bool CreateTransferRequest(Transfer transfer)
+        {
+            RestRequest request = new RestRequest("/transfers/request");
+            request.AddJsonBody(transfer);
+            IRestResponse response = client.Post(request);
+            CheckResponse(response);
+
+            if ((int)response.StatusCode == 200)
+            {
+                return true;
+            }
+
+            else
+            {
+                return false;
+            }
+
+        }
+
+        public bool UpdateTransfer(Transfer transfer)
+        {
+            RestRequest request = new RestRequest($"/transfers/{transfer.TransferId}");
+            request.AddJsonBody(transfer);
+            IRestResponse response = client.Put(request);
+            CheckResponse(response);
+            
+            if ((int)response.StatusCode == 204)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
         public List<Transfer> GetTransfersByUser(int id)
         {
             RestRequest request = new RestRequest($"/users/{id}/transfers");
+            IRestResponse<List<Transfer>> response = client.Get<List<Transfer>>(request);
+            CheckResponse(response);
+
+            return response.Data;
+        }
+
+        public List<Transfer> GetPendingByUser(int id)
+        {
+            RestRequest request = new RestRequest($"/users/{id}/transfers?pending=true");
             IRestResponse<List<Transfer>> response = client.Get<List<Transfer>>(request);
             CheckResponse(response);
 
@@ -55,8 +100,6 @@ namespace TenmoClient.DAL
                 throw new Exception($"Error - server return error response {response.StatusCode} ({(int)response.StatusCode}) ");
             }
         }
-
-
 
     }
 }

@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using TenmoServer.DAO;
 using TenmoServer.Models;
+using static TenmoServer.Models.Enums;
 
 namespace TenmoServer.Controllers
 {
@@ -21,8 +22,8 @@ namespace TenmoServer.Controllers
             this.transferDAO = transferDAO;
         }
 
-       [HttpPost]
-       public IActionResult CreateTransfer(Transfer transfer)
+        [HttpPost]
+        public IActionResult CreateTransfer(Transfer transfer)
         {
             bool wasCreated = transferDAO.CreateTransfer(transfer);
 
@@ -35,8 +36,8 @@ namespace TenmoServer.Controllers
                 return BadRequest();
             }
         }
-        [HttpPost("/request")]
 
+        [HttpPost("request")]
         public IActionResult RequestTransfer(Transfer transfer)
         {
             bool wasCreated = transferDAO.CreatePendingTransfer(transfer);
@@ -44,6 +45,30 @@ namespace TenmoServer.Controllers
             if (wasCreated)
             {
                 return Ok();
+            }
+            else
+            {
+                return BadRequest();
+            }
+        }
+
+        [HttpPut("{id}")]
+        public IActionResult UpdateTransfer(Transfer transfer)
+        {
+            bool wasUpdated = false;
+
+            if (transfer.TransferStatus == TransferStatus.Approved)
+            {
+                wasUpdated = transferDAO.AuthorizeTransfer(transfer);
+            }
+            else
+            {
+                wasUpdated = transferDAO.RejectTransfer(transfer);
+            }
+
+            if (wasUpdated)
+            {
+                return NoContent();
             }
             else
             {
