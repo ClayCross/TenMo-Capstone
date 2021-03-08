@@ -209,6 +209,7 @@ namespace TenmoClient.Views
                 {
                     return MenuOptionResult.DoNotWaitAfterMenuSelection;
                 }
+                // verifies selected Id is in list of users
                 DisplayAccount verifiedAccount = accounts.Find(a => a.AccountId == accountToId);
                 if (verifiedAccount != null)
                 {

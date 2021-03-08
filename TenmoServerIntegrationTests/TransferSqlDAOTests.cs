@@ -27,7 +27,7 @@ namespace TenmoServerIntegrationTests
         public void GetTransfersByUserTest()
         {
             // Arrange
-            int test1UserId = GetTest1UserId();
+            int test1UserId = GetUserIdByUsername("test1");
             // Act
             List<Transfer> actualResult = dao.GetTransfersByUser(test1UserId);
 
@@ -41,7 +41,7 @@ namespace TenmoServerIntegrationTests
         public void GetPendingByUserTest()
         {
             // Arrange
-            int test1UserId = GetTest1UserId();
+            int test1UserId = GetUserIdByUsername("test1");
 
             // Act
             List<Transfer> actualResult = dao.GetPendingByUser(test1UserId);
@@ -58,8 +58,6 @@ namespace TenmoServerIntegrationTests
         [TestMethod]
         public void AuthorizeTransferTest()
         {
-            // (1, 1, 1, 3, 50),
-            Transfer transferBeforeUpdate = null;
             // Arrange
             Transfer transfer = new Transfer();
             try
@@ -73,7 +71,8 @@ namespace TenmoServerIntegrationTests
                     
                     if (rdr.Read())
                     {
-                        transferBeforeUpdate = RowToObject(rdr);
+                        transfer = RowToObject(rdr);
+                        transfer.TransferStatus = TransferStatus.Approved;
                     }
                 }
             }
@@ -83,13 +82,6 @@ namespace TenmoServerIntegrationTests
                 throw;
             }
 
-            transfer.TransferId = transferBeforeUpdate.TransferId;
-            transfer.TransferStatus = (TransferStatus)2;
-            transfer.TransferType = (TransferType)1;
-            transfer.AccountFrom = transferBeforeUpdate.AccountFrom;
-            transfer.AccountTo = transferBeforeUpdate.AccountTo;
-            transfer.Amount = transferBeforeUpdate.Amount;
-
             // Act
             bool actualResult = dao.AuthorizeTransfer(transfer);
 
@@ -97,7 +89,178 @@ namespace TenmoServerIntegrationTests
             Assert.IsTrue(actualResult);
             Assert.AreEqual(990, GetBalanceByAccount(transfer.AccountFrom));
             Assert.AreEqual(1010, GetBalanceByAccount(transfer.AccountTo));
+            Assert.AreEqual(2, GetTransferStatusByTransferId(transfer.TransferId));
             
+        }
+
+        [TestMethod]
+        public void RejectTransferTest()
+        {
+            
+            // Arrange
+            Transfer transfer = new Transfer();
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(connectionString))
+                {
+                    conn.Open();
+                    string Sql = "SELECT * FROM transfers WHERE amount = 10;";
+                    SqlCommand cmd = new SqlCommand(Sql, conn);
+                    SqlDataReader rdr = cmd.ExecuteReader();
+
+                    if (rdr.Read())
+                    {
+                        transfer = RowToObject(rdr);
+                        transfer.TransferStatus = TransferStatus.Rejected;
+
+                    }
+                }
+            }
+            catch (SqlException ex)
+            {
+
+                throw;
+            }
+            // Act
+            bool actualResult = dao.RejectTransfer(transfer);
+
+            // Assert
+            Assert.IsTrue(actualResult);
+            Assert.AreEqual(1000, GetBalanceByAccount(transfer.AccountFrom));
+            Assert.AreEqual(1000, GetBalanceByAccount(transfer.AccountTo));
+            Assert.AreEqual(3, GetTransferStatusByTransferId(transfer.TransferId));
+
+        }
+        [TestMethod]
+        public void CreateTransferTest()
+        {
+            // Arrange
+            Transfer transfer = new Transfer();
+            transfer.TransferType = TransferType.Send;
+            transfer.TransferStatus = TransferStatus.Approved;
+            transfer.AccountFrom = 1;
+            transfer.AccountTo = 2;
+            transfer.Amount = 20;
+
+            int maxIdBeforeTransfer = GetMaxTransferId();
+
+            // Act
+            bool actualResult = dao.CreateTransfer(transfer);
+
+            int maxIdAfterTransfer = GetMaxTransferId();
+            Transfer returnedTranForMaxId = GetTransferByTransferId(maxIdAfterTransfer);
+            // Assert
+            Assert.IsTrue(actualResult);
+            Assert.AreEqual(980, GetBalanceByAccount(returnedTranForMaxId.AccountFrom));
+            Assert.AreEqual(1020, GetBalanceByAccount(returnedTranForMaxId.AccountTo));
+            Assert.IsTrue(maxIdAfterTransfer == maxIdBeforeTransfer + 1);
+            Assert.IsTrue(transfer.TransferType == returnedTranForMaxId.TransferType);
+            Assert.IsTrue(transfer.TransferStatus == returnedTranForMaxId.TransferStatus);
+            Assert.IsTrue(transfer.UserNameFrom == returnedTranForMaxId.UserNameFrom);
+            Assert.IsTrue(transfer.UserNameTo == returnedTranForMaxId.UserNameTo);
+            Assert.IsTrue(transfer.Amount == returnedTranForMaxId.Amount);
+            Assert.IsTrue(transfer.AccountFrom == returnedTranForMaxId.AccountFrom);
+            Assert.IsTrue(transfer.AccountTo == returnedTranForMaxId.AccountTo);
+
+        }
+
+        [TestMethod]
+        public void CreatePendingTransfer()
+        {
+            // Arrange
+            Transfer transfer = new Transfer();
+            transfer.TransferType = TransferType.Request;
+            transfer.TransferStatus = TransferStatus.Pending;
+            transfer.AccountFrom = 1;
+            transfer.AccountTo = 2;
+            transfer.Amount = 20;
+            int maxIdBeforeTransfer = GetMaxTransferId();
+
+            // Act
+            bool actualResult = dao.CreatePendingTransfer(transfer);
+
+            int maxIdAfterTran = GetMaxTransferId();
+            Transfer returnedTranForMaxId = GetTransferByTransferId(maxIdAfterTran);
+
+            // Assert
+            Assert.IsTrue(actualResult);
+            Assert.AreEqual(1000, GetBalanceByAccount(returnedTranForMaxId.AccountFrom));
+            Assert.AreEqual(1000, GetBalanceByAccount(returnedTranForMaxId.AccountTo));
+            Assert.IsTrue(maxIdAfterTran == maxIdBeforeTransfer + 1);
+            Assert.IsTrue(transfer.TransferType == returnedTranForMaxId.TransferType);
+            Assert.IsTrue(transfer.TransferStatus == returnedTranForMaxId.TransferStatus);
+            Assert.IsTrue(transfer.UserNameFrom == returnedTranForMaxId.UserNameFrom);
+            Assert.IsTrue(transfer.UserNameTo == returnedTranForMaxId.UserNameTo);
+            Assert.IsTrue(transfer.Amount == returnedTranForMaxId.Amount);
+            Assert.IsTrue(transfer.AccountFrom == returnedTranForMaxId.AccountFrom);
+            Assert.IsTrue(transfer.AccountTo == returnedTranForMaxId.AccountTo);
+
+        }
+        private int GetMaxTransferId()
+        {
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(connectionString))
+                {
+                    conn.Open();
+
+                    SqlCommand cmd = new SqlCommand("SELECT MAX(transfer_id) FROM transfers", conn);
+                    int maxId = Convert.ToInt32(cmd.ExecuteScalar());
+                    return maxId;
+                }
+            }
+            catch (SqlException ex)
+            {
+
+                throw;
+            }
+        }
+        private Transfer GetTransferByTransferId(int id)
+        {
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(connectionString))
+                {
+                    Transfer transfer = null;
+                    conn.Open();
+
+                    SqlCommand cmd = new SqlCommand("SELECT * FROM transfers WHERE transfer_id = @transferId;", conn);
+                    cmd.Parameters.AddWithValue("@transferId", id);
+                    SqlDataReader rdr = cmd.ExecuteReader();
+
+                    if (rdr.Read())
+                    {
+                        transfer = RowToObject(rdr);
+                    }
+
+                    return transfer;
+                }
+            }
+            catch (SqlException ex)
+            {
+
+                throw;
+            }
+        }
+        private int GetTransferStatusByTransferId(int transferId)
+        {
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(connectionString))
+                {
+                    conn.Open();
+
+                    SqlCommand cmd = new SqlCommand("SELECT transfer_status_id FROM transfers WHERE transfer_id = @transferId;", conn);
+                    cmd.Parameters.AddWithValue("@transferId", transferId);
+                    int transferStatusId = Convert.ToInt32(cmd.ExecuteScalar());
+                    return transferStatusId;
+                }
+            }
+            catch (SqlException ex)
+            {
+
+                throw;
+            }
         }
         private decimal GetBalanceByAccount(int accountId)
         {
@@ -143,7 +306,7 @@ namespace TenmoServerIntegrationTests
 
             return total;
         }
-        private int GetTest1UserId()
+        private int GetUserIdByUsername(string username)
         {
             try
             {
@@ -151,7 +314,8 @@ namespace TenmoServerIntegrationTests
                 {
                     conn.Open();
 
-                    SqlCommand cmd = new SqlCommand("SELECT user_id FROM users WHERE username = 'test1';", conn);
+                    SqlCommand cmd = new SqlCommand("SELECT user_id FROM users WHERE username = @username;", conn);
+                    cmd.Parameters.AddWithValue("@username", username);
                     int userId = Convert.ToInt32(cmd.ExecuteScalar());
 
                     return userId;

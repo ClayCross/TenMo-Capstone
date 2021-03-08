@@ -66,11 +66,11 @@ INSERT INTO transfer_types (transfer_type_desc) VALUES ('Request');
 INSERT INTO transfer_types (transfer_type_desc) VALUES ('Send');
 
 INSERT INTO users (username, password_hash, salt) VALUES
-	('test1', 'test', 'test'),
-	('test2', 'test', 'test'),
-	('test3', 'test', 'test'),
-	('test4', 'test', 'test'),
-	('test5', 'test', 'test')
+	('test1', 'testHash1', 'testSalt1'),
+	('test2', 'testHash2', 'testSalt2'),
+	('test3', 'testHash3', 'testSalt3'),
+	('test4', 'testHash4', 'testSalt4'),
+	('test5', 'testHash5', 'testSalt5')
 
 INSERT INTO accounts (user_id, balance) VALUES
 	(1, 1000),
